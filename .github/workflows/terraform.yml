@@ -2,28 +2,26 @@ name: 'Terraform CI/CD'
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - develop
   pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   id-token: write
   contents: read
+  pull-requests: write
 
 jobs:
-  terraform:
-    name: 'Terraform'
+  terraform-plan:
+    name: 'Terraform Plan'
     runs-on: ubuntu-latest
     environment: production
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Debug Info
-      run: |
-        echo "GitHub Ref: ${{ github.ref }}"
-        echo "GitHub Event Name: ${{ github.event_name }}"
-        echo "GitHub Repository: ${{ github.repository }}"
 
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
@@ -41,6 +39,53 @@ jobs:
       run: terraform fmt -check || true
 
     - name: Terraform Plan
-      run: terraform plan
+      run: terraform plan -no-color
+      continue-on-error: true
 
-    # Add more Terraform steps as needed
+    - uses: actions/github-script@v6
+      if: github.event_name == 'pull_request'
+      env:
+        PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+          <details><summary>Show Plan</summary>
+          \`\`\`\n
+          ${process.env.PLAN}
+          \`\`\`
+          </details>
+          *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: output
+          })
+
+  terraform-apply:
+    name: 'Terraform Apply'
+    needs: terraform-plan
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::339712743018:role/asaeed-gha-role
+        aws-region: us-east-1
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
