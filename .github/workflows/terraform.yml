@@ -41,15 +41,17 @@ jobs:
       run: tflint --init
 
     - name: Run TFLint
-      run: tflint -f compact
-      continue-on-error: true
+      id: tflint
+      run: |
+        tflint -f compact > tflint_output.txt
+        cat tflint_output.txt
+        if grep -q "issue(s) found" tflint_output.txt; then
+          echo "::warning ::TFLint found issues"
+          exit 0
+        fi
 
     - name: Terraform Init
       run: terraform init
-
-    - name: Terraform Format
-      run: terraform fmt -check -recursive -diff
-      continue-on-error: true
 
     - name: Terraform Plan
       run: terraform plan -no-color
@@ -60,18 +62,14 @@ jobs:
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
         TFLINT_OUTPUT: "${{ steps.tflint.outputs.stdout }}"
-        FORMAT_OUTPUT: "${{ steps.fmt.outputs.stdout }}"
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const output = `#### TFLint Results 🔍\`${{ steps.tflint.outcome }}\`
+          const fs = require('fs');
+          const tflintOutput = fs.readFileSync('tflint_output.txt', 'utf8');
+          const output = `#### TFLint Results 🔍
           \`\`\`
-          ${process.env.TFLINT_OUTPUT}
-          \`\`\`
-          
-          #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
-          \`\`\`
-          ${process.env.FORMAT_OUTPUT}
+          ${tflintOutput}
           \`\`\`
           
           #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`

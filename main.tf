@@ -8,8 +8,15 @@ terraform {
   }
 }
 
+provider "aws" {
+  region = "us-east-1"  # or your preferred region
+}
+
 module "s3_bucket" {
   source = "./modules/s3"
+  providers = {
+    aws = aws
+  }
 
   bucket_name       = "ahmeds-module-bucket"
   log_bucket_name   = "ahmeds-log-bucket-name"
