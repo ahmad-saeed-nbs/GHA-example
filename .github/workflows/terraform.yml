@@ -48,7 +48,7 @@ jobs:
       run: terraform init
 
     - name: Terraform Format
-      run: terraform fmt -check
+      run: terraform fmt -check -recursive -diff
       continue-on-error: true
 
     - name: Terraform Plan
@@ -59,16 +59,28 @@ jobs:
       if: github.event_name == 'pull_request'
       env:
         PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        TFLINT_OUTPUT: "${{ steps.tflint.outputs.stdout }}"
+        FORMAT_OUTPUT: "${{ steps.fmt.outputs.stdout }}"
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          const output = `#### TFLint Results 🔍\`${{ steps.tflint.outcome }}\`
+          \`\`\`
+          ${process.env.TFLINT_OUTPUT}
+          \`\`\`
+          
+          #### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+          \`\`\`
+          ${process.env.FORMAT_OUTPUT}
+          \`\`\`
+          
           #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
           <details><summary>Show Plan</summary>
-          \`\`\`\n
+          \`\`\`
           ${process.env.PLAN}
           \`\`\`
           </details>
+          
           *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
           github.rest.issues.createComment({
             issue_number: context.issue.number,
