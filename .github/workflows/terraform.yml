@@ -14,8 +14,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  terraform-plan:
-    name: 'Terraform Plan'
+  terraform-lint-and-plan:
+    name: 'Terraform Lint and Plan'
     runs-on: ubuntu-latest
     environment: production
 
@@ -31,6 +31,14 @@ jobs:
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
+
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v3
+      with:
+        tflint_version: v0.23.0
+
+    - name: Run TFLint
+      run: tflint --format=compact
 
     - name: Terraform Init
       run: terraform init
@@ -66,7 +74,7 @@ jobs:
 
   terraform-apply:
     name: 'Terraform Apply'
-    needs: terraform-plan
+    needs: terraform-lint-and-plan
     runs-on: ubuntu-latest
     environment: production
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
