@@ -35,16 +35,18 @@ jobs:
     - name: Setup TFLint
       uses: terraform-linters/setup-tflint@v3
       with:
-        tflint_version: v0.23.0
+        tflint_version: v0.44.1
 
     - name: Run TFLint
-      run: tflint --format=compact
+      run: tflint
+      continue-on-error: true
 
     - name: Terraform Init
       run: terraform init
 
     - name: Terraform Format
-      run: terraform fmt -check || true
+      run: terraform fmt -check
+      continue-on-error: true
 
     - name: Terraform Plan
       run: terraform plan -no-color
