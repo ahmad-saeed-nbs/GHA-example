@@ -1,5 +1,5 @@
 module "s3_bucket" {
-  source = "../../modules/s3"
+  source = "modules/s3"
 
   bucket_name       = "ahmeds-module-bucket"
   log_bucket_name   = "ahmeds-log-bucket-name"
