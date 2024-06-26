@@ -51,7 +51,12 @@ jobs:
         fi
 
     - name: Terraform Init
-      run: terraform init
+      run: |
+        terraform init \
+          -backend-config="bucket=ahmeds-terraform-state-bucket" \
+          -backend-config="GHA/terraform.tfstate" \
+          -backend-config="region=us-east-1" \
+          # -backend-config="dynamodb_table=your-terraform-state-lock-table"
 
     - name: Terraform Plan
       run: terraform plan -no-color
@@ -108,7 +113,12 @@ jobs:
       uses: hashicorp/setup-terraform@v3
 
     - name: Terraform Init
-      run: terraform init
+      run: |
+        terraform init \
+          -backend-config="bucket=ahmeds-terraform-state-bucket" \
+          -backend-config="GHA/terraform.tfstate" \
+          -backend-config="region=us-east-1" \
+          # -backend-config="dynamodb_table=your-terraform-state-lock-table"
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
