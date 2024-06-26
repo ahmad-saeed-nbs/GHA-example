@@ -59,7 +59,7 @@ jobs:
           -backend-config="bucket=ahmeds-terraform-state-bucket" \
           -backend-config="GHA/terraform.tfstate" \
           -backend-config="region=us-east-1" \
-          -force-copy
+          -reconfigure
 
     - name: Terraform Plan
       run: terraform plan -no-color
@@ -121,7 +121,7 @@ jobs:
           -backend-config="bucket=ahmeds-terraform-state-bucket" \
           -backend-config="GHA/terraform.tfstate" \
           -backend-config="region=us-east-1" \
-          -force-copy
+          -reconfigure
 
     - name: Terraform Apply
       run: terraform apply -auto-approve
