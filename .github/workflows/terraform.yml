@@ -129,6 +129,7 @@ jobs:
 
   terraform-destroy:
       name: 'Terraform Destroy'
+      needs: terraform-apply
       runs-on: ubuntu-latest
       environment: production
       if: github.event_name == 'workflow_dispatch'  # This allows manual triggering
