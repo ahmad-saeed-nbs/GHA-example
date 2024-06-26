@@ -57,7 +57,7 @@ jobs:
       run: |
         terraform init \
           -backend-config="bucket=ahmeds-terraform-state-bucket" \
-          -backend-config="GHA/terraform.tfstate" \
+          -backend-config="key=GHA/terraform.tfstate" \
           -backend-config="region=us-east-1" \
           -reconfigure
 
@@ -119,7 +119,7 @@ jobs:
       run: |
         terraform init \
           -backend-config="bucket=ahmeds-terraform-state-bucket" \
-          -backend-config="GHA/terraform.tfstate" \
+          -backend-config="key=GHA/terraform.tfstate" \
           -backend-config="region=us-east-1" \
           -reconfigure
 
