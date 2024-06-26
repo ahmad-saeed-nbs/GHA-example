@@ -1,6 +1,7 @@
 name: 'Terraform CI/CD'
 
 on:
+  workflow_dispatch:  # This enables manual triggering
   push:
     branches:
       - main
